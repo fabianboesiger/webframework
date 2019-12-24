@@ -1,0 +1,10 @@
+[package]
+name = "webframework"
+version = "0.1.0"
+authors = ["fabianboesiger <boesiger.fabian@outlook.com>"]
+edition = "2018"
+
+[dependencies]
+form_derive = { path = "form_derive" }
+httpserver = { git = "https://github.com/fabianboesiger/httpserver.git" }
+database = { git = "https://github.com/fabianboesiger/database.git" }
