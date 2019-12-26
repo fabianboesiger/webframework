@@ -1,4 +1,3 @@
-pub trait Form {
-    fn form(&self) -> String;
-    fn populate(input: String);
-}
+use super::Content;
+
+pub trait Form: Content {}

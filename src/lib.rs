@@ -29,9 +29,15 @@ mod tests {
         let mut server = Server::new("127.0.0.1:8000");
         server.threads(8);
 
-        server.route(path!(/), renderer.html(html!(
-            html (class="main") [
-                body []
+        server.route(path!(/), renderer.content(html!(
+            "<!DOCTYPE html>";
+            html [
+                head [
+                    title [ "Hello Rust Web Framework!"; ]
+                ]
+                body [
+                    h1 [ "Hello Rust Web Framework!"; ]
+                ]
             ]
         )));
         

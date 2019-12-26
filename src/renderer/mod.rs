@@ -22,11 +22,11 @@ impl Renderer<'_> {
         }
     }
 
-    pub fn html(&self, content: Vec<Box<dyn Content>>) -> impl Fn(Request, Arguments) -> Response {        
+    pub fn content(&self, content: Vec<Box<dyn Content>>) -> impl Fn(Request, Arguments) -> Response {        
         move |request, arguments| {
             Response::new().status(Status::OK).content(match request.method {
                 Method::GET => {
-                    let mut output = String::from("<!DOCTYPE html>").into_bytes();
+                    let mut output = Vec::new();
                     for element in &content {
                         output.append(&mut element.get());
                     }

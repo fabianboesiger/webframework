@@ -122,19 +122,21 @@ fn impl_store(ast: &syn::DeriveInput) -> TokenStream {
 
     // generate implementation
     let gen = quote! {
-        impl Form for #struct_name {
-            fn form(&self) -> String {
+        impl Form for #struct_name {}
+
+        impl Content for #struct_name {
+            fn get(&self) -> Vec<u8> {
                 let mut input = String::new();
                 input.push_str("<form>");
                 #(
                     input.push_str(&format!(#field_html, self.#field_names));
                 )*
                 input.push_str("</form>");
-                input
+                input.into_bytes()
             }
 
-            fn populate(input: String) {
-
+            fn post(&self) -> Vec<u8> {
+                Vec::new()
             }
         }
     };

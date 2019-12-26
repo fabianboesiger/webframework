@@ -52,22 +52,24 @@ macro_rules! html {
     () => {Vec::new()}; 
     ($tag:ident $( ( $key:ident = $value:expr ) ),* [ $($inner:tt)* ] $($rest:tt)*) => {
         {
-            let mut tags: Vec<Box<dyn Content>> = Vec::new();
+            let mut content: Vec<Box<dyn Content>> = Vec::new();
             let mut tag = Tag::new(stringify!($tag));
             $(
                 tag.attribute(stringify!($key), format!("{}", $value));
             )*
             tag.append(html!($($inner)*));
-            tags.push(Box::new(tag));
-            tags.append(&mut html!($($rest)*));
-            tags
+            content.push(Box::new(tag));
+            content.append(&mut html!($($rest)*));
+            content
         }
     };
-    ({ $($eval:tt)* } $($rest:tt)*) => {
-        format!("{}{}", {$($eval)*}, html!($($rest)*))
-    };
-    ($content:tt $($rest:tt)*) => {
-        format!("{}{}", $content, html!($($rest)*))
+    ($content:expr ; $($rest:tt)*) => {
+        {
+            let mut content: Vec<Box<dyn Content>> = Vec::new();
+            content.push(Box::new($content));
+            content.append(&mut html!($($rest)*));
+            content
+        }
     };
 }
 
