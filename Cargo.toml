@@ -8,3 +8,4 @@ edition = "2018"
 form_derive = { path = "form_derive" }
 httpserver = { git = "https://github.com/fabianboesiger/httpserver.git" }
 database = { git = "https://github.com/fabianboesiger/database.git" }
+rand = "0.7"

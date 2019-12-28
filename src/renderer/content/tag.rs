@@ -1,8 +1,10 @@
 use super::Content;
+use database::Database;
 
 pub struct Tag<'a> {
     name: &'static str,
     inner: Vec<Box<dyn Content + 'a>>,
+    attributes: Vec<(&'static str, String)>
 }
 
 impl<'a> Tag<'a> {
@@ -10,6 +12,7 @@ impl<'a> Tag<'a> {
         Tag {
             name,
             inner: Vec::new(),
+            attributes: Vec::new()
         }
     }
 
@@ -24,23 +27,28 @@ impl<'a> Tag<'a> {
     }
 
     pub fn attribute(&mut self, key: &'static str, value: String) {
+        self.attributes.push((key, value));
     }
 }
 
 impl Content for Tag<'_> {
-    fn get(&self) -> Vec<u8> {
-        let mut output = format!("<{}>", self.name).into_bytes();
+    fn get(&self, database: &Database) -> Vec<u8> {
+        let mut attributes = String::new();
+        for attribute in &self.attributes {
+            attributes.push_str(&format!(" {}={}", attribute.0, attribute.1));
+        }
+        let mut output = format!("<{}{}>", self.name, attributes).into_bytes();
         for tag in &self.inner {
-            output.append(&mut tag.get());
+            output.append(&mut tag.get(database));
         }
         output.append(&mut format!("</{}>", self.name).into_bytes());
         output
     }
 
-    fn post(&self) -> Vec<u8> {
+    fn post(&self, database: &Database) -> Vec<u8> {
         let mut output = Vec::new();
         for tag in &self.inner {
-            output.append(&mut tag.post());
+            output.append(&mut tag.post(database));
         }
         output
     }
@@ -50,7 +58,7 @@ impl Content for Tag<'_> {
 #[macro_export]
 macro_rules! html {
     () => {Vec::new()}; 
-    ($tag:ident $( ( $key:ident = $value:expr ) ),* [ $($inner:tt)* ] $($rest:tt)*) => {
+    ($tag:ident $( ( $key:ident = $value:expr ) ),* { $($inner:tt)* } $($rest:tt)*) => {
         {
             let mut content: Vec<Box<dyn Content>> = Vec::new();
             let mut tag = Tag::new(stringify!($tag));

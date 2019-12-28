@@ -30,7 +30,7 @@ fn extract_name_value(nested: &Punctuated<NestedMeta, Comma>, name: &str) -> Opt
 #[derive(Clone)]
 struct InputField {
     pub ident: Ident,
-    name: String,
+    name: Option<String>,
     input_type: InputType
 }
 
@@ -48,16 +48,16 @@ impl InputField {
         InputField {
             ident: field.ident.unwrap(),
             name: if let Some(Lit::Str(lit_str)) = extract_name_value(&nested, "name") {
-                lit_str.value()
+                Some(lit_str.value())
             } else {
-                panic!("name not found")
+                None
             },
             input_type: InputType::parse(nested)
         }
     }
 
     fn html(&self) -> String {
-        format!("<label for=\"{ident}\">{name}</label><input id=\"{ident}\" name=\"{ident}\" value=\"{placeholder}\"></input>", ident=self.ident, name=self.name, placeholder="{}")
+        format!("<label for=\"{ident}\">{name}</label><input id=\"{ident}\" name=\"{ident}\" value=\"{placeholder}\"></input>", ident=self.ident, name=self.name.as_ref().expect("formatting not allowed without name"), placeholder="{}")
     }
 }
 
@@ -117,26 +117,21 @@ fn impl_store(ast: &syn::DeriveInput) -> TokenStream {
         Data::Enum(_) | Data::Union(_) => unimplemented!()
     };
     
-    let field_html = fields.clone().into_iter().map(|field| field.html());
-    let field_names = fields.into_iter().map(|field| field.ident);
+    let field_html = fields.clone().into_iter().filter(|field| field.name.is_some()).map(|field| field.html());
+    let field_names = fields.into_iter().filter(|field| field.name.is_some()).map(|field| field.ident);
 
     // generate implementation
     let gen = quote! {
-        impl Form for #struct_name {}
-
-        impl Content for #struct_name {
-            fn get(&self) -> Vec<u8> {
+        impl Form for #struct_name {
+            fn html(&self) -> Vec<u8> {
                 let mut input = String::new();
-                input.push_str("<form>");
+                input.push_str("<form method=\"POST\">");
                 #(
                     input.push_str(&format!(#field_html, self.#field_names));
                 )*
+                input.push_str("<input type=\"submit\"></input>");
                 input.push_str("</form>");
                 input.into_bytes()
-            }
-
-            fn post(&self) -> Vec<u8> {
-                Vec::new()
             }
         }
     };

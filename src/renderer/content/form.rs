@@ -1,3 +1,3 @@
-use super::Content;
-
-pub trait Form: Content {}
+pub trait Form {
+    fn html(&self) -> Vec<u8>;
+}
